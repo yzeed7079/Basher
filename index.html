@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نظام باشر للمخالفات الأمنية - MOI RP</title>
+    <style>
+        body {
+            background-color: #0b0f15;
+            color: #fff;
+            font-family: Tahoma, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-image: radial-gradient(circle at center, #111a2e 0%, #0b0f15 100%);
+        }
+        .main-container {
+            background: #111622;
+            border: 2px solid #1f2d42;
+            border-radius: 12px;
+            padding: 25px;
+            width: 800px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+        }
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        h2 {
+            margin: 0;
+            color: #58a6ff;
+            font-size: 18px;
+            text-align: center;
+            border-bottom: 1px solid #1f2d42;
+            padding-bottom: 8px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label {
+            font-size: 12px;
+            color: #8b949e;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px 10px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #fff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 13px;
+        }
+        .submit-btn {
+            background: #238636;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .submit-btn:hover {
+            background: #2ea043;
+        }
+        .right-panel {
+            flex: 1;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result-title {
+            color: #58a6ff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #30363d;
+            padding-bottom: 5px;
+            font-size: 15px;
+        }
+        .ticket-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-right: 4px solid #f85149;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .highlight-green {
+            color: #2ea043;
+            font-weight: bold;
+        }
+        .highlight-blue {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <!-- القسم الأيمن: إدخال بيانات المخالفة -->
+    <div class="left-panel">
+        <h2>نظام باشر - تسجيل مخالفة</h2>
+        
+        <div class="form-group">
+            <label>اسم المركبة ورقم اللوحة:</label>
+            <input type="text" id="carName" placeholder="مثال: كابريس 2013 - أ ب ج 1234">
+        </div>
+
+        <div class="form-group">
+            <label>نوع المخالفة:</label>
+            <select id="violationType">
+                <option value="السرعة الزائدة وتجاوز الإشارة">السرعة الزائدة وتجاوز الإشارة</option>
+                <option value="هروب من نقطة تفتيش">هروب من نقطة تفتيش</option>
+                <option value="قيادة متهورة وتفحيط">قيادة متهورة وتفحيط</option>
+                <option value="تظليل مخالف / عدم حمل رخصة">تظليل مخالف / عدم حمل رخصة</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>اسم المخالف (ديسكورد):</label>
+            <input type="text" id="offenderDiscord" placeholder="مثال: gxi.dev">
+        </div>
+
+        <div class="form-group">
+            <label>اسم العسكري المباشر (ديسكورد):</label>
+            <input type="text" id="copDiscord" placeholder="مثال: lax_911">
+        </div>
+
+        <button class="submit-btn" onclick="issueTicket()">إصدار وتسجيل المخالفة 🚨</button>
+    </div>
+
+    <!-- القسم الأيسر: عرض السجلات والمخالفات المسجلة -->
+    <div class="right-panel" id="recordsPanel">
+        <div class="result-title">سجل المخالفات الحية</div>
+        <div id="ticketsList">
+            <span style="color: #8b949e; font-size: 13px;">لم يتم تسجيل أي مخالفة حتى الآن...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+let isFirstTicket = true;
+
+function issueTicket() {
+    const car = document.getElementById('carName').value.trim();
+    const violation = document.getElementById('violationType').value;
+    const offender = document.getElementById('offenderDiscord').value.trim();
+    const cop = document.getElementById('copDiscord').value.trim();
+    const listContainer = document.getElementById('ticketsList');
+
+    if(!car || !offender || !cop) {
+        alert('الرجاء تعبئة جميع الحقول بشكل صحيح!');
+        return;
+    }
+
+    if(isFirstTicket) {
+        listContainer.innerHTML = '';
+        isFirstTicket = false;
+    }
+
+    // إضافة كرت المخالفة الجديد للقائمة
+    const ticketHTML = `
+        <div class="ticket-card">
+            - المركبة: <span class="highlight-blue">${car}</span><br>
+            - المخالفة: <span style="color: #f85149;">${violation}</span><br>
+            - المخالف: @${offender}<br>
+            - العسكري: <span class="highlight-green">@${cop}</span>
+        </div>
+    `;
+
+    listContainer.innerHTML = ticketHTML + listContainer.innerHTML;
+
+    // تفريغ الحقول بعد التسجيل
+    document.getElementById('carName').value = '';
+    document.getElementById('offenderDiscord').value = '';
+    document.getElementById('copDiscord').value = '';
+}
+</script>
+
+</body>
+</html>
